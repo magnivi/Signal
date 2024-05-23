@@ -152,54 +152,51 @@ void plotSignal(std::vector<double> signal) {
     plt::show();
 }
 //ex.4 - generating sin/cos/pwm.sawTooth signals
-void generateWave(std::string WaveType, int frequency, double duration, double samplingFrequency) {
-    std::vector<double>;
-    if (WaveType == "sin")
-    {
-        int numSamples = duration * samplingFrequency;
-        std::vector<double> signal(numSamples);
+void generateWave(std::string WaveType, int frequency, double duration) {
+    double samplingFrequency = 100;  //44100
+    double maxDuration = 5;          // Maximum duration in seconds
+
+    if (duration > maxDuration) {
+        duration = maxDuration;
+    }
+
+    int numSamples = static_cast<int>(duration * samplingFrequency);
+    std::vector<double> signal(numSamples);
+
+    if (WaveType == "sin") {
         for (int i = 0; i < numSamples; ++i) {
             double t = static_cast<double>(i) / samplingFrequency;
-            signal[i] = sin(2 * M_PI * frequency * t);
+            signal[i] = sin(2.0 * M_PI * frequency * t);
         }
-        plotSignal(signal);
     }
     else if (WaveType == "cos") {
-        int numSamples = duration * samplingFrequency;
-        std::vector<double> signal(numSamples);
         for (int i = 0; i < numSamples; ++i) {
             double t = static_cast<double>(i) / samplingFrequency;
             signal[i] = cos(2.0 * M_PI * frequency * t);
         }
-        plotSignal(signal);
     }
     else if (WaveType == "pwm") {
-        int numSamples = duration * samplingFrequency;
-        std::vector<double> signal(numSamples);
         double period = 1.0 / frequency;
         double halfPeriod = period / 2.0;
         for (int i = 0; i < numSamples; ++i) {
             double t = static_cast<double>(i) / samplingFrequency;
             double remainder = fmod(t, period);
-            if (remainder < halfPeriod) {
-                signal[i] = 1.0;
-            }
-            else {
-                signal[i] = -1.0;
-            }
+            signal[i] = (remainder < halfPeriod) ? 1.0 : -1.0;
         }
-        plotSignal(signal);
     }
     else if (WaveType == "sawtooth") {
-        int numSamples = duration * samplingFrequency;
-        std::vector<double> signal(numSamples);
         double period = 1.0 / frequency;
         for (int i = 0; i < numSamples; ++i) {
             double t = static_cast<double>(i) / samplingFrequency;
             signal[i] = 2.0 * (t / period - floor(0.5 + t / period));
         }
-        plotSignal(signal);
     }
+    else {
+        std::cerr << "Unknown wave type: " << WaveType << std::endl;
+        return;
+    }
+
+    plotSignal(signal);
 }
 
 PYBIND11_MODULE(Signal, m) {
@@ -221,7 +218,8 @@ PYBIND11_MODULE(Signal, m) {
     m.def("process_audio", &process_audio, R"pbdoc(Plot file using matplot.)pbdoc");
     m.def("getNumSamples", &getNumSamples, R"pbdoc(Plot file using matplot.)pbdoc");
     m.def("calculateCorrelation", &calculateCorrelation, R"pbdoc(Plot file using matplot.)pbdoc");
-    m.def("generateWave", &generateWave, "generate wave function", py::arg("WaveType"), py::arg("frequency"), py::arg("duration"), py::arg("samplingFrequency"));
+    //m.def("generateWave", &generateWave, "generate wave function", py::arg("WaveType"), py::arg("frequency"), py::arg("duration"), py::arg("samplingFrequency"));
+    m.def("generateWave", &generateWave, "generate wave function", py::arg("WaveType"), py::arg("frequency"), py::arg("duration"));
     //m.def("process_audio2", &process_audio, "generate wave function", py::arg("FileName"), py::arg("Samples"));
 
 
