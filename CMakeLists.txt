@@ -12,7 +12,10 @@ endif()
 project ("Signal")
 
 # Add source to this project's executable.
-add_executable (Signal "Signal.cpp" "Signal.h")
+add_subdirectory(pybind11)
+add_subdirectory(matplotplusplus)
+pybind11_add_module(Signal Signal.cpp)
+target_link_libraries(Signal PUBLIC matplot)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Signal PROPERTY CXX_STANDARD 20)
