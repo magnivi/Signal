@@ -10,7 +10,7 @@ import Signal
 #print(Signal.getNumSamples("audioFile.wav"))
 
 #for i in Signal.getSamplesFromAudio("audioFile.wav"):
-#    print(i)
+    #print(i)
 
 #Demanded functions:
 
