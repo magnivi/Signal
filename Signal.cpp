@@ -11,6 +11,7 @@
 namespace plt = matplot;
 namespace py = pybind11;
 const int M_PI = 3.14;
+//returns number of samples of an audio file
 int getNumSamples(const std::string& fileName) {
     AudioFile<short> audioFile;
     if (!audioFile.load(fileName)) {
@@ -18,7 +19,23 @@ int getNumSamples(const std::string& fileName) {
     }
     return audioFile.getNumSamplesPerChannel();
 }
+//returns in list samples of an audio file
+std::vector<short> getSamplesFromAudio(const std::string& fileName) {
+    AudioFile<short> audioFile;
+    audioFile.load(fileName);
 
+    int numChannels = audioFile.getNumChannels();
+    int numSamples = audioFile.getNumSamplesPerChannel();
+
+    std::vector<short> samples;
+
+    for (int i = 0; i < numSamples; ++i) {
+        for (int channel = 0; channel < numChannels; ++channel) {
+            samples.push_back(audioFile.samples[channel][i]);
+        }
+    }
+    return samples;
+}
 //ex.1 - plot audio
 void process_audio(std::string fileName, int showSamples) {
     AudioFile<short> audioFile;
@@ -125,7 +142,7 @@ void Filter1DAudio(std::string fileName, std::vector<short>& kernel1D, int num_s
 }
 
 //ex.9 computing corelation of 2 signals
-std::vector<double> calculateCorrelation(const std::vector<double>& y, const std::vector<double>& x) {
+void calculateCorrelation(const std::vector<double>& y, const std::vector<double>& x) {
     int K = y.size() - 1;
     int M = x.size() - 1;
     int size = K + M + 1;
@@ -141,7 +158,6 @@ std::vector<double> calculateCorrelation(const std::vector<double>& y, const std
     }
     plt::plot(w);
     plt::show();
-    return w;
 }
 void plotSignal(std::vector<double> signal) {
     plt::plot(signal);
@@ -153,8 +169,8 @@ void plotSignal(std::vector<double> signal) {
 }
 //ex.4 - generating sin/cos/pwm.sawTooth signals
 void generateWave(std::string WaveType, int frequency, double duration) {
-    double samplingFrequency = 100;  //44100
-    double maxDuration = 5;          // Maximum duration in seconds
+    double samplingFrequency = 100;  
+    double maxDuration = 5;     
 
     if (duration > maxDuration) {
         duration = maxDuration;
@@ -209,18 +225,22 @@ PYBIND11_MODULE(Signal, m) {
         .. autosummary::
            :toctree: _generate
 
-           add
-           subtract
+           vectorFilter1D
+            Filter1DAudio
+            process_audio
+            getNumSamples
+            calculateCorrelation
+            generateWave
     )pbdoc";
-
-    m.def("vectorFilter1D", &vectorFilter1D, R"pbdoc(Plot file using matplot.)pbdoc");
-    m.def("Filter1DAudio", &Filter1DAudio, R"pbdoc(Plot file using matplot.)pbdoc");
-    m.def("process_audio", &process_audio, R"pbdoc(Plot file using matplot.)pbdoc");
-    m.def("getNumSamples", &getNumSamples, R"pbdoc(Plot file using matplot.)pbdoc");
-    m.def("calculateCorrelation", &calculateCorrelation, R"pbdoc(Plot file using matplot.)pbdoc");
-    //m.def("generateWave", &generateWave, "generate wave function", py::arg("WaveType"), py::arg("frequency"), py::arg("duration"), py::arg("samplingFrequency"));
+    //auxilary
+    m.def("getSamplesFromAudio", &getSamplesFromAudio, py::arg("Filename"));
+    m.def("getNumSamples", &getNumSamples, py::arg("Filename"));
+    //main
+    m.def("process_audio", &process_audio, py::arg("Filename"), py::arg("Samples"));
+    m.def("vectorFilter1D", &vectorFilter1D, py::arg("samples"), py::arg("kernel"), py::arg("numOfSamples"));
+    m.def("Filter1DAudio", &Filter1DAudio, py::arg("Filename"), py::arg("kernel"), py::arg("numOfSamples"));
+    m.def("calculateCorrelation", &calculateCorrelation, py::arg("signal1"), py::arg("signal2"));
     m.def("generateWave", &generateWave, "generate wave function", py::arg("WaveType"), py::arg("frequency"), py::arg("duration"));
-    //m.def("process_audio2", &process_audio, "generate wave function", py::arg("FileName"), py::arg("Samples"));
 
 
 
